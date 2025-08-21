@@ -6,11 +6,191 @@
     <title>Client Manager Pro</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="icon" type="image/png" href="https://i.postimg.cc/TwKdTjgv/people-1.png">
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Client Manager Pro">
+    <link rel="apple-touch-icon" href="https://i.postimg.cc/XJtVqZkG/people.png">
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- iOS specific meta tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-touch-fullscreen" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <!-- Searchable Dropdown Styles -->
+    <style>
+        .searchable-select {
+            position: relative;
+            width: 100%;
+        }
+        
+        .searchable-select input {
+            width: 100%;
+            padding: 12px 40px 12px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 1rem;
+            background: #f8fafc;
+            cursor: pointer;
+        }
+        
+        .searchable-select input:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .searchable-select .dropdown-arrow {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #a0aec0;
+            pointer-events: none;
+            transition: transform 0.3s ease;
+        }
+        
+        .searchable-select.open .dropdown-arrow {
+            transform: translateY(-50%) rotate(180deg);
+        }
+        
+        .dropdown-options {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-top: none;
+            border-radius: 0 0 10px 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .dropdown-options.show {
+            display: block;
+        }
+        
+        .dropdown-option {
+            padding: 12px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #f1f5f9;
+            transition: background-color 0.2s ease;
+        }
+        
+        .dropdown-option:hover {
+            background-color: #f8fafc;
+        }
+        
+        .dropdown-option.selected {
+            background-color: #667eea;
+            color: white;
+        }
+        
+        .dropdown-option.add-new {
+            background-color: #e6fffa;
+            color: #00a693;
+            font-weight: 600;
+            border-top: 2px solid #00a693;
+        }
+        
+        .dropdown-option.add-new:hover {
+            background-color: #ccfff5;
+        }
+        
+        .pwa-install-banner {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            z-index: 1001;
+            animation: slideUp 0.5s ease;
+        }
+        
+        .pwa-install-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+        }
+        
+        .pwa-install-text {
+            flex: 1;
+        }
+        
+        .pwa-install-text h4 {
+            margin: 0 0 5px 0;
+            font-size: 1rem;
+        }
+        
+        .pwa-install-text p {
+            margin: 0;
+            font-size: 0.85rem;
+            opacity: 0.9;
+        }
+        
+        .pwa-install-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .pwa-btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .pwa-btn-install {
+            background: white;
+            color: #667eea;
+        }
+        
+        .pwa-btn-install:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 255, 255, 0.3);
+        }
+        
+        .pwa-btn-dismiss {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .pwa-btn-dismiss:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateY(100px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1><i class="fas fa-users"></i> Client Manager Pro</h1>
+            <div class="logo-section">
+                <img src="https://i.postimg.cc/XJtVqZkG/people.png" alt="Client Manager Pro" class="logo-img">
+                <h1>Client Manager Pro</h1>
+            </div>
             <div class="header-buttons">
                 <button id="newClientBtn" class="btn-primary">
                     <i class="fas fa-plus"></i> New Client
@@ -26,57 +206,170 @@
             <div class="card">
                 <h2><i class="fas fa-user-plus"></i> Client Information Form</h2>
                 <form id="clientForm">
+                    <!-- Site Visit Date -->
                     <div class="form-group">
-                        <label for="clientName">Full Name *</label>
-                        <input type="text" id="clientName" required>
+                        <label for="siteVisitDate">Site Visit Date *</label>
+                        <input type="date" id="siteVisitDate" required>
+                    </div>
+
+                    <!-- Client Basic Info -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="clientName">Client Name *</label>
+                            <input type="text" id="clientName" required placeholder="Enter full name">
+                        </div>
+                        <div class="form-group">
+                            <label for="contactNo">Contact Number *</label>
+                            <input type="tel" id="contactNo" required placeholder="Enter phone number">
+                        </div>
+                    </div>
+
+                    <!-- Configuration & Budget -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="configuration">Configuration</label>
+                            <div class="searchable-select" data-field="configuration">
+                                <input type="text" id="configuration" placeholder="Select or type configuration" autocomplete="off">
+                                <i class="fas fa-chevron-down dropdown-arrow"></i>
+                                <div class="dropdown-options">
+                                    <div class="dropdown-option" data-value="1 BHK">1 BHK</div>
+                                    <div class="dropdown-option" data-value="2 BHK">2 BHK</div>
+                                    <div class="dropdown-option" data-value="3 BHK">3 BHK</div>
+                                    <div class="dropdown-option" data-value="4 BHK">4 BHK</div>
+                                    <div class="dropdown-option" data-value="Villa">Villa</div>
+                                    <div class="dropdown-option" data-value="Duplex">Duplex</div>
+                                    <div class="dropdown-option" data-value="Penthouse">Penthouse</div>
+                                    <div class="dropdown-option" data-value="Studio">Studio</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="budget">Budget</label>
+                            <div class="searchable-select" data-field="budget">
+                                <input type="text" id="budget" placeholder="Select or type budget range" autocomplete="off">
+                                <i class="fas fa-chevron-down dropdown-arrow"></i>
+                                <div class="dropdown-options">
+                                    <div class="dropdown-option" data-value="Under 25 Lakh">Under 25 Lakh</div>
+                                    <div class="dropdown-option" data-value="25-50 Lakh">25-50 Lakh</div>
+                                    <div class="dropdown-option" data-value="50-75 Lakh">50-75 Lakh</div>
+                                    <div class="dropdown-option" data-value="75 Lakh - 1 Crore">75 Lakh - 1 Crore</div>
+                                    <div class="dropdown-option" data-value="1-2 Crore">1-2 Crore</div>
+                                    <div class="dropdown-option" data-value="2-5 Crore">2-5 Crore</div>
+                                    <div class="dropdown-option" data-value="Above 5 Crore">Above 5 Crore</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Lead Status & Prospect -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="leadStatus">Lead Status</label>
+                            <div class="searchable-select" data-field="leadStatus">
+                                <input type="text" id="leadStatus" placeholder="Select or type lead status" autocomplete="off">
+                                <i class="fas fa-chevron-down dropdown-arrow"></i>
+                                <div class="dropdown-options">
+                                    <div class="dropdown-option" data-value="Hot">Hot</div>
+                                    <div class="dropdown-option" data-value="Warm">Warm</div>
+                                    <div class="dropdown-option" data-value="Cold">Cold</div>
+                                    <div class="dropdown-option" data-value="Qualified">Qualified</div>
+                                    <div class="dropdown-option" data-value="Contacted">Contacted</div>
+                                    <div class="dropdown-option" data-value="Meeting Scheduled">Meeting Scheduled</div>
+                                    <div class="dropdown-option" data-value="Proposal Sent">Proposal Sent</div>
+                                    <div class="dropdown-option" data-value="Negotiation">Negotiation</div>
+                                    <div class="dropdown-option" data-value="Closed Won">Closed Won</div>
+                                    <div class="dropdown-option" data-value="Closed Lost">Closed Lost</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="prospect">Prospect</label>
+                            <div class="searchable-select" data-field="prospect">
+                                <input type="text" id="prospect" placeholder="Select or type prospect level" autocomplete="off">
+                                <i class="fas fa-chevron-down dropdown-arrow"></i>
+                                <div class="dropdown-options">
+                                    <div class="dropdown-option" data-value="High">High</div>
+                                    <div class="dropdown-option" data-value="Medium">Medium</div>
+                                    <div class="dropdown-option" data-value="Low">Low</div>
+                                    <div class="dropdown-option" data-value="Very High">Very High</div>
+                                    <div class="dropdown-option" data-value="Confirmed">Confirmed</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Follow Up Date -->
+                    <div class="form-group">
+                        <label for="followUpDate">Follow Up Date</label>
+                        <input type="date" id="followUpDate">
+                    </div>
+
+                    <!-- Managers -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="sourcingManager">Sourcing Manager</label>
+                            <div class="searchable-select" data-field="sourcingManager">
+                                <input type="text" id="sourcingManager" placeholder="Select or type sourcing manager" autocomplete="off">
+                                <i class="fas fa-chevron-down dropdown-arrow"></i>
+                                <div class="dropdown-options">
+                                    <div class="dropdown-option" data-value="Rahul Sharma">Rahul Sharma</div>
+                                    <div class="dropdown-option" data-value="Priya Singh">Priya Singh</div>
+                                    <div class="dropdown-option" data-value="Amit Kumar">Amit Kumar</div>
+                                    <div class="dropdown-option" data-value="Sneha Patel">Sneha Patel</div>
+                                    <div class="dropdown-option" data-value="Vikash Gupta">Vikash Gupta</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="closingManager">Closing Manager</label>
+                            <div class="searchable-select" data-field="closingManager">
+                                <input type="text" id="closingManager" placeholder="Select or type closing manager" autocomplete="off">
+                                <i class="fas fa-chevron-down dropdown-arrow"></i>
+                                <div class="dropdown-options">
+                                    <div class="dropdown-option" data-value="Rajesh Verma">Rajesh Verma</div>
+                                    <div class="dropdown-option" data-value="Sunita Jain">Sunita Jain</div>
+                                    <div class="dropdown-option" data-value="Manish Agarwal">Manish Agarwal</div>
+                                    <div class="dropdown-option" data-value="Kavita Mehta">Kavita Mehta</div>
+                                    <div class="dropdown-option" data-value="Suresh Yadav">Suresh Yadav</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CP Information -->
+                    <div class="form-group">
+                        <label for="cpFirmName">CP Firm Name</label>
+                        <div class="searchable-select" data-field="cpFirmName">
+                            <input type="text" id="cpFirmName" placeholder="Select or type CP firm name" autocomplete="off">
+                            <i class="fas fa-chevron-down dropdown-arrow"></i>
+                            <div class="dropdown-options">
+                                <div class="dropdown-option" data-value="PropTech Solutions">PropTech Solutions</div>
+                                <div class="dropdown-option" data-value="Real Estate Partners">Real Estate Partners</div>
+                                <div class="dropdown-option" data-value="Property Consultants India">Property Consultants India</div>
+                                <div class="dropdown-option" data-value="Elite Realty">Elite Realty</div>
+                                <div class="dropdown-option" data-value="Prime Properties">Prime Properties</div>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="clientPhone">Phone Number *</label>
-                            <input type="tel" id="clientPhone" required>
+                            <label for="cpName">CP Name</label>
+                            <input type="text" id="cpName" placeholder="Enter CP representative name">
                         </div>
                         <div class="form-group">
-                            <label for="clientEmail">Email Address</label>
-                            <input type="email" id="clientEmail">
+                            <label for="cpContactNo">CP Contact Number</label>
+                            <input type="tel" id="cpContactNo" placeholder="Enter CP contact number">
                         </div>
                     </div>
 
+                    <!-- Remark -->
                     <div class="form-group">
-                        <label for="clientCompany">Company/Organization</label>
-                        <input type="text" id="clientCompany">
+                        <label for="remark">Remark</label>
+                        <textarea id="remark" rows="4" placeholder="Meeting notes, special requirements, follow-up actions..."></textarea>
                     </div>
 
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="clientService">Service Interest</label>
-                            <select id="clientService">
-                                <option value="">Select Service</option>
-                                <option value="consultation">Consultation</option>
-                                <option value="development">Development</option>
-                                <option value="maintenance">Maintenance</option>
-                                <option value="support">Support</option>
-                                <option value="other">Other</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="clientBudget">Budget Range</label>
-                            <select id="clientBudget">
-                                <option value="">Select Budget</option>
-                                <option value="under-5k">Under $5,000</option>
-                                <option value="5k-10k">$5,000 - $10,000</option>
-                                <option value="10k-25k">$10,000 - $25,000</option>
-                                <option value="25k-50k">$25,000 - $50,000</option>
-                                <option value="over-50k">Over $50,000</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="clientNotes">Notes/Requirements</label>
-                        <textarea id="clientNotes" rows="4" placeholder="Meeting notes, special requirements, follow-up actions..."></textarea>
-                    </div>
-
+                    <!-- Client Photo -->
                     <div class="form-group">
                         <label for="clientPhoto">Client Photo</label>
                         <div class="photo-upload">
@@ -120,6 +413,14 @@
                         <span class="stat-number" id="todayClients">0</span>
                         <span class="stat-label">Added Today</span>
                     </div>
+                    <div class="stat">
+                        <span class="stat-number" id="hotLeads">0</span>
+                        <span class="stat-label">Hot Leads</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number" id="followUpsToday">0</span>
+                        <span class="stat-label">Follow-ups Today</span>
+                    </div>
                 </div>
 
                 <div id="clientsList" class="clients-list">
@@ -140,7 +441,7 @@
                 </div>
                 <div class="modal-body">
                     <div class="form-group">
-                        <label for="editRemarks">Remarks/Updates</label>
+                        <label for="editRemarks">Additional Remarks/Updates</label>
                         <textarea id="editRemarks" rows="4" placeholder="Add follow-up notes, meeting outcomes, status updates..."></textarea>
                     </div>
                     <div class="modal-actions">
@@ -149,6 +450,20 @@
                         </button>
                         <button id="cancelEdit" class="btn-secondary">Cancel</button>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PWA Install Banner -->
+        <div id="pwaInstallBanner" class="pwa-install-banner">
+            <div class="pwa-install-content">
+                <div class="pwa-install-text">
+                    <h4>Install Client Manager Pro</h4>
+                    <p>Get quick access and work offline</p>
+                </div>
+                <div class="pwa-install-buttons">
+                    <button id="pwaInstallBtn" class="pwa-btn pwa-btn-install">Install</button>
+                    <button id="pwaDismissBtn" class="pwa-btn pwa-btn-dismiss">Later</button>
                 </div>
             </div>
         </div>
