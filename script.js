@@ -32,11 +32,38 @@ class ClientManager {
         this.renderClients();
         this.initializePWA();
         this.setDefaultSiteVisitDate();
+        this.checkURLForData(); // Check for data in URL
     }
 
     setDefaultSiteVisitDate() {
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('siteVisitDate').value = today;
+    }
+
+    // Check for data in URL (for manual sync)
+    checkURLForData() {
+        const params = new URLSearchParams(window.location.search);
+        const data = params.get('data');
+        
+        if (data) {
+            try {
+                const parsed = JSON.parse(decodeURIComponent(data));
+                if (confirm(`Import ${parsed.clients.length} clients from ${new Date(parsed.timestamp).toLocaleString()}?`)) {
+                    this.clients = parsed.clients || [];
+                    this.dropdownOptions = parsed.dropdownOptions || this.getDefaultDropdownOptions();
+                    this.saveToStorage();
+                    this.saveDropdownOptions();
+                    this.renderClients();
+                    this.updateStats();
+                    this.initializeSearchableDropdowns();
+                    this.showSuccessMessage('Data imported successfully from URL!');
+                }
+                // Clear URL
+                window.history.replaceState({}, '', window.location.pathname);
+            } catch (error) {
+                console.error('Invalid data in URL');
+            }
+        }
     }
 
     bindEvents() {
@@ -109,43 +136,24 @@ class ClientManager {
         });
     }
 
-    // Google Sheets Integration Methods
-    async createGoogleSheet() {
-        try {
-            const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets?key=${this.GOOGLE_SHEETS_API_KEY}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    properties: {
-                        title: `Client Manager Pro - ${new Date().toLocaleDateString()}`
-                    },
-                    sheets: [{
-                        properties: {
-                            title: "Clients"
-                        }
-                    }]
-                })
-            });
-
-            const sheet = await response.json();
+    // FIXED Google Sheets Integration Methods
+    async createGoogleSheetWithAPIKey() {
+        const sheetId = prompt('📋 SETUP INSTRUCTIONS:\n\n1. Go to sheets.google.com\n2. Create a new blank sheet\n3. Click "Share" → Set to "Anyone with link can EDIT"\n4. Copy the Sheet ID from URL\n\nEnter your Google Sheet ID:');
+        if (sheetId) {
+            this.SPREADSHEET_ID = sheetId.trim();
+            localStorage.setItem('spreadsheetId', this.SPREADSHEET_ID);
             
-            if (response.ok) {
-                this.SPREADSHEET_ID = sheet.spreadsheetId;
-                localStorage.setItem('spreadsheetId', this.SPREADSHEET_ID);
-                
+            // Test the connection
+            try {
                 await this.addHeaders();
-                
-                alert(`✅ Google Sheet Created Successfully!\n\nSheet ID: ${this.SPREADSHEET_ID}\n\nShare this ID with other devices to sync data!`);
+                alert('✅ Connected to Google Sheet successfully!\n\nYou can now sync your data!');
                 return true;
-            } else {
-                throw new Error(sheet.error?.message || 'Failed to create sheet');
+            } catch (error) {
+                alert('❌ Connection failed. Please check:\n1. Sheet ID is correct\n2. Sheet is set to "Anyone with link can EDIT"');
+                return false;
             }
-        } catch (error) {
-            alert('❌ Error creating sheet: ' + error.message);
-            return false;
         }
+        return false;
     }
 
     async addHeaders() {
@@ -157,7 +165,7 @@ class ClientManager {
         ];
 
         try {
-            await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${this.SPREADSHEET_ID}/values/Clients!A1:R1?valueInputOption=RAW&key=${this.GOOGLE_SHEETS_API_KEY}`, {
+            const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${this.SPREADSHEET_ID}/values/A1:R1?valueInputOption=USER_ENTERED&key=${this.GOOGLE_SHEETS_API_KEY}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -166,24 +174,29 @@ class ClientManager {
                     values: [headers]
                 })
             });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error?.message || `HTTP ${response.status}`);
+            }
         } catch (error) {
             console.error('Error adding headers:', error);
+            throw error;
         }
     }
 
+    // FIXED sync to Google Sheets
     async syncToGoogleSheets() {
         if (!this.SPREADSHEET_ID) {
-            const create = confirm('No Google Sheet found. Create a new one?');
-            if (create) {
-                const created = await this.createGoogleSheet();
-                if (!created) return;
-            } else {
-                return;
-            }
+            const created = await this.createGoogleSheetWithAPIKey();
+            if (!created) return;
         }
 
         try {
-            // Convert clients to rows
+            // Show loading message
+            this.showSuccessMessage('🔄 Syncing to Google Sheets...');
+
+            // Prepare data rows
             const rows = this.clients.map(client => [
                 client.id || '',
                 client.siteVisitDate || '',
@@ -205,17 +218,22 @@ class ClientManager {
                 client.lastModified || ''
             ]);
 
-            // Clear existing data (except headers)
-            await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${this.SPREADSHEET_ID}/values/Clients!A2:R1000:clear?key=${this.GOOGLE_SHEETS_API_KEY}`, {
+            // Clear existing data first (except headers)
+            const clearResponse = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${this.SPREADSHEET_ID}/values/A2:R1000:clear?key=${this.GOOGLE_SHEETS_API_KEY}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 }
             });
 
-            // Add new data if any
+            if (!clearResponse.ok) {
+                const error = await clearResponse.json();
+                throw new Error(`Clear failed: ${error.error?.message || clearResponse.status}`);
+            }
+
+            // Add new data if any exists
             if (rows.length > 0) {
-                const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${this.SPREADSHEET_ID}/values/Clients!A2:R${rows.length + 1}?valueInputOption=RAW&key=${this.GOOGLE_SHEETS_API_KEY}`, {
+                const updateResponse = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${this.SPREADSHEET_ID}/values/A2:R${rows.length + 1}?valueInputOption=USER_ENTERED&key=${this.GOOGLE_SHEETS_API_KEY}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -225,24 +243,25 @@ class ClientManager {
                     })
                 });
 
-                if (response.ok) {
+                if (updateResponse.ok) {
                     this.showSuccessMessage(`✅ ${this.clients.length} clients synced to Google Sheets!`);
                 } else {
-                    const error = await response.json();
-                    throw new Error(error.error?.message || 'Failed to sync data');
+                    const errorData = await updateResponse.json();
+                    throw new Error(`Update failed: ${errorData.error?.message || updateResponse.status}`);
                 }
             } else {
-                this.showSuccessMessage('✅ Sheet cleared (no clients to sync)');
+                this.showSuccessMessage('✅ Google Sheet cleared (no clients to sync)');
             }
         } catch (error) {
-            alert('❌ Sync error: ' + error.message);
-            console.error('Sync error:', error);
+            console.error('Sync error details:', error);
+            alert(`❌ Sync Error: ${error.message}\n\n🔧 Troubleshooting:\n1. Check internet connection\n2. Verify Sheet ID is correct\n3. Ensure sheet is set to "Anyone with link can EDIT"\n4. Try refreshing the page`);
         }
     }
 
+    // FIXED sync from Google Sheets  
     async syncFromGoogleSheets() {
         if (!this.SPREADSHEET_ID) {
-            const sheetId = prompt('Enter your Google Sheet ID\n(Found in the URL: docs.google.com/spreadsheets/d/SHEET_ID/edit):');
+            const sheetId = prompt('Enter your Google Sheet ID\n(Found in the URL after /d/ and before /edit):');
             if (sheetId) {
                 this.SPREADSHEET_ID = sheetId.trim();
                 localStorage.setItem('spreadsheetId', this.SPREADSHEET_ID);
@@ -252,49 +271,54 @@ class ClientManager {
         }
 
         try {
-            const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${this.SPREADSHEET_ID}/values/Clients!A2:R1000?key=${this.GOOGLE_SHEETS_API_KEY}`);
+            // Show loading message
+            this.showSuccessMessage('🔄 Loading from Google Sheets...');
+
+            const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${this.SPREADSHEET_ID}/values/A2:R1000?key=${this.GOOGLE_SHEETS_API_KEY}`);
+            
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(`Fetch failed: ${error.error?.message || response.status}`);
+            }
+
             const data = await response.json();
 
-            if (response.ok) {
-                if (data.values && data.values.length > 0) {
-                    const clients = data.values.map(row => ({
-                        id: row[0] || Date.now().toString() + Math.random(),
-                        siteVisitDate: row[1] || '',
-                        clientName: row[1] || '',
-                        contactNo: row[2] || '',
-                        configuration: row[3] || '',
-                        budget: row[4] || '',
-                        leadStatus: row[5] || '',
-                        prospect: row[6] || '',
-                        followUpDate: row[7] || '',
-                        sourcingManager: row[8] || '',
-                        closingManager: row[9] || '',
-                        cpFirmName: row[10] || '',
-                        cpName: row[11] || '',
-                        cpContactNo: row[12] || '',
-                        remark: row[13] || '',
-                        additionalRemarks: row[14] || '',
-                        photo: null, // Photos stored locally
-                        dateAdded: row[16] || new Date().toISOString(),
-                        lastModified: row[17] || new Date().toISOString()
-                    })).filter(client => client.clientName.trim()); // Remove empty rows
+            if (data.values && data.values.length > 0) {
+                const clients = data.values.map(row => ({
+                    id: row[0] || `${Date.now()}_${Math.random()}`,
+                    siteVisitDate: row[1] || '',
+                    clientName: row[1] || '',
+                    contactNo: row[2] || '',
+                    configuration: row[3] || '',
+                    budget: row[5] || '',
+                    leadStatus: row[4] || '',
+                    prospect: row[5] || '',
+                    followUpDate: row[8] || '',
+                    sourcingManager: row[6] || '',
+                    closingManager: row[7] || '',
+                    cpFirmName: row[8] || '',
+                    cpName: row[9] || '',
+                    cpContactNo: row[10] || '',
+                    remark: row[14] || '',
+                    additionalRemarks: row[11] || '',
+                    photo: null,
+                    dateAdded: row[16] || new Date().toISOString(),
+                    lastModified: row[12] || new Date().toISOString()
+                })).filter(client => client.clientName.trim()); // Only non-empty names
 
-                    if (confirm(`📊 Found ${clients.length} clients in Google Sheets.\n\nReplace your local data with cloud data?`)) {
-                        this.clients = clients;
-                        this.saveToStorage();
-                        this.renderClients();
-                        this.updateStats();
-                        this.showSuccessMessage(`✅ ${clients.length} clients loaded from Google Sheets!`);
-                    }
-                } else {
-                    alert('📝 Google Sheet is empty or has no client data.');
+                if (confirm(`📊 Found ${clients.length} clients in Google Sheets.\n\nReplace your local data with cloud data?`)) {
+                    this.clients = clients;
+                    this.saveToStorage();
+                    this.renderClients();
+                    this.updateStats();
+                    this.showSuccessMessage(`✅ ${clients.length} clients loaded from Google Sheets successfully!`);
                 }
             } else {
-                throw new Error(data.error?.message || 'Failed to access Google Sheet');
+                alert('📝 Google Sheet appears empty.\n\nMake sure:\n1. You have data in rows 2 and below\n2. Headers are in row 1');
             }
         } catch (error) {
-            alert('❌ Load error: ' + error.message + '\n\nMake sure the Sheet ID is correct and the sheet is accessible.');
-            console.error('Load error:', error);
+            console.error('Load error details:', error);
+            alert(`❌ Load Error: ${error.message}\n\n🔧 Troubleshooting:\n1. Check Sheet ID is correct\n2. Set sharing to "Anyone with link can VIEW"\n3. Check internet connection\n4. Make sure sheet has data in rows 2+`);
         }
     }
 
@@ -302,8 +326,43 @@ class ClientManager {
         if (this.SPREADSHEET_ID) {
             window.open(`https://docs.google.com/spreadsheets/d/${this.SPREADSHEET_ID}/edit`, '_blank');
         } else {
-            alert('❌ No Google Sheet configured yet.\nClick "Sync Up" first to create one!');
+            alert('❌ No Google Sheet configured yet.\n\nClick "Sync Up" first to connect to a sheet!');
         }
+    }
+
+    // Manual URL-based sync (backup method)
+    createSyncURL() {
+        const data = {
+            clients: this.clients,
+            dropdownOptions: this.dropdownOptions,
+            timestamp: new Date().toISOString()
+        };
+        
+        const encodedData = encodeURIComponent(JSON.stringify(data));
+        const syncURL = `${window.location.origin}${window.location.pathname}?data=${encodedData}`;
+        
+        // Create modal to show URL
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.style.display = 'block';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3><i class="fas fa-link"></i> Manual Sync URL</h3>
+                    <button class="close-btn" onclick="this.closest('.modal').remove()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>Copy this URL and open it on another device:</strong></p>
+                    <textarea readonly style="width: 100%; height: 100px; font-size: 12px; margin: 10px 0;">${syncURL}</textarea>
+                    <div style="text-align: center; margin-top: 15px;">
+                        <button onclick="navigator.clipboard.writeText('${syncURL}'); alert('URL copied to clipboard!'); this.closest('.modal').remove();" class="btn-primary">
+                            <i class="fas fa-copy"></i> Copy URL
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
     }
 
     // Searchable Dropdown Methods
@@ -532,7 +591,7 @@ class ClientManager {
 
         // Validate required fields
         if (!client.siteVisitDate || !client.clientName || !client.contactNo) {
-            alert('Please fill in all required fields (Site Visit Date, Client Name, Contact Number)');
+            alert('Please fill in all required fields:\n• Site Visit Date\n• Client Name\n• Contact Number');
             return;
         }
 
@@ -552,15 +611,15 @@ class ClientManager {
     finalizeClientSave(client) {
         this.clients.push(client);
         this.saveToStorage();
-        this.showSuccessMessage('Client saved successfully!');
+        this.showSuccessMessage('✅ Client saved successfully!');
         
         // Auto-sync to Google Sheets if configured
         if (this.SPREADSHEET_ID) {
             setTimeout(() => {
-                if (confirm('Auto-sync to Google Sheets?')) {
+                if (confirm('🔄 Auto-sync to Google Sheets?\n\n(Recommended to keep data updated across devices)')) {
                     this.syncToGoogleSheets();
                 }
-            }, 1000);
+            }, 1500);
         }
         
         this.clearForm();
@@ -569,7 +628,7 @@ class ClientManager {
         setTimeout(() => {
             this.showSection('leadBank');
             this.renderClients();
-        }, 1500);
+        }, 2000);
     }
 
     clearForm() {
@@ -591,7 +650,7 @@ class ClientManager {
         
         setTimeout(() => {
             this.removeSuccessMessage();
-        }, 3000);
+        }, 4000);
     }
 
     removeSuccessMessage() {
@@ -646,10 +705,10 @@ class ClientManager {
                     <div class="client-info">
                         <h3>${client.clientName}</h3>
                         <div class="client-meta">
-                            <div>Site Visit: ${client.siteVisitDate ? new Date(client.siteVisitDate).toLocaleDateString() : 'Not set'}</div>
-                            <div>Added: ${new Date(client.dateAdded).toLocaleDateString()}</div>
+                            <div>📅 Site Visit: ${client.siteVisitDate ? new Date(client.siteVisitDate).toLocaleDateString() : 'Not set'}</div>
+                            <div>➕ Added: ${new Date(client.dateAdded).toLocaleDateString()}</div>
                             ${client.lastModified !== client.dateAdded ? 
-                                `<div>Updated: ${new Date(client.lastModified).toLocaleDateString()}</div>` : ''}
+                                `<div>✏️ Updated: ${new Date(client.lastModified).toLocaleDateString()}</div>` : ''}
                         </div>
                     </div>
                     ${client.photo ? `<img src="${client.photo}" alt="${client.clientName}" class="client-photo">` : ''}
@@ -744,7 +803,7 @@ class ClientManager {
             this.saveToStorage();
             this.renderClients();
             this.closeModal();
-            this.showSuccessMessage('Remarks updated successfully!');
+            this.showSuccessMessage('✅ Remarks updated successfully!');
         }
     }
 
@@ -752,7 +811,7 @@ class ClientManager {
         const clientIndex = this.clients.findIndex(c => c.id === clientId);
         if (clientIndex !== -1) {
             const client = this.clients[clientIndex];
-            const followUpNote = `Follow-up completed on ${new Date().toLocaleDateString()}`;
+            const followUpNote = `✅ Follow-up completed on ${new Date().toLocaleDateString()}`;
             
             this.clients[clientIndex].additionalRemarks = client.additionalRemarks ? 
                 `${client.additionalRemarks}\n\n${followUpNote}` : followUpNote;
@@ -762,17 +821,17 @@ class ClientManager {
             this.saveToStorage();
             this.renderClients();
             this.updateStats();
-            this.showSuccessMessage('Follow-up marked as completed!');
+            this.showSuccessMessage('✅ Follow-up marked as completed!');
         }
     }
 
     deleteClient(clientId) {
-        if (confirm('Are you sure you want to delete this client? This action cannot be undone.')) {
+        if (confirm('⚠️ Are you sure you want to delete this client?\n\nThis action cannot be undone.')) {
             this.clients = this.clients.filter(c => c.id !== clientId);
             this.saveToStorage();
             this.renderClients();
             this.updateStats();
-            this.showSuccessMessage('Client deleted successfully!');
+            this.showSuccessMessage('✅ Client deleted successfully!');
         }
     }
 
@@ -806,7 +865,7 @@ class ClientManager {
         if (this.isIOS() && !this.isInStandaloneMode()) {
             setTimeout(() => {
                 this.showIOSInstallBanner();
-            }, 3000);
+            }, 5000);
         }
 
         // PWA install banner events
@@ -835,22 +894,38 @@ class ClientManager {
     }
 
     showInstallBanner() {
+        const dismissed = localStorage.getItem('pwaInstallDismissed');
+        if (dismissed && Date.now() < parseInt(dismissed)) {
+            return; // Don't show if recently dismissed
+        }
+        
         const banner = document.getElementById('pwaInstallBanner');
-        banner.classList.add('show');
+        if (banner) {
+            banner.classList.add('show');
+        }
     }
 
     showIOSInstallBanner() {
+        const dismissed = localStorage.getItem('pwaInstallDismissed');
+        if (dismissed && Date.now() < parseInt(dismissed)) {
+            return; // Don't show if recently dismissed
+        }
+        
         const banner = document.getElementById('pwaInstallBanner');
         const installBtn = document.getElementById('pwaInstallBtn');
         const text = banner.querySelector('.pwa-install-text');
         
-        text.innerHTML = `
-            <h4>Add to Home Screen</h4>
-            <p>Tap <i class="fas fa-share"></i> then "Add to Home Screen"</p>
-        `;
-        
-        installBtn.style.display = 'none';
-        banner.classList.add('show');
+        if (banner && text) {
+            text.innerHTML = `
+                <h4>📱 Add to Home Screen</h4>
+                <p>Tap <i class="fas fa-share"></i> then "Add to Home Screen"</p>
+            `;
+            
+            if (installBtn) {
+                installBtn.style.display = 'none';
+            }
+            banner.classList.add('show');
+        }
     }
 
     async installPWA() {
@@ -871,7 +946,9 @@ class ClientManager {
 
     dismissInstallBanner() {
         const banner = document.getElementById('pwaInstallBanner');
-        banner.classList.remove('show');
+        if (banner) {
+            banner.classList.remove('show');
+        }
         
         // Don't show again for 7 days
         localStorage.setItem('pwaInstallDismissed', Date.now() + (7 * 24 * 60 * 60 * 1000));
@@ -882,7 +959,9 @@ class ClientManager {
         const data = {
             clients: this.clients,
             dropdownOptions: this.dropdownOptions,
-            exportDate: new Date().toISOString()
+            spreadsheetId: this.SPREADSHEET_ID,
+            exportDate: new Date().toISOString(),
+            version: "2.0"
         };
         
         const dataStr = JSON.stringify(data, null, 2);
@@ -895,7 +974,7 @@ class ClientManager {
         link.click();
         
         URL.revokeObjectURL(url);
-        this.showSuccessMessage('Data exported successfully!');
+        this.showSuccessMessage('✅ Data exported successfully!');
     }
 
     importData(event) {
@@ -907,9 +986,14 @@ class ClientManager {
             try {
                 const importedData = JSON.parse(e.target.result);
                 
-                if (confirm('This will replace all existing data. Continue?')) {
+                if (confirm(`📊 Import ${importedData.clients?.length || 0} clients?\n\nThis will replace all existing data.`)) {
                     this.clients = importedData.clients || [];
                     this.dropdownOptions = importedData.dropdownOptions || this.getDefaultDropdownOptions();
+                    
+                    if (importedData.spreadsheetId) {
+                        this.SPREADSHEET_ID = importedData.spreadsheetId;
+                        localStorage.setItem('spreadsheetId', this.SPREADSHEET_ID);
+                    }
                     
                     this.saveToStorage();
                     this.saveDropdownOptions();
@@ -919,40 +1003,14 @@ class ClientManager {
                     
                     this.renderClients();
                     this.updateStats();
-                    this.showSuccessMessage('Data imported successfully!');
+                    this.showSuccessMessage('✅ Data imported successfully!');
                 }
             } catch (error) {
-                alert('Invalid file format. Please select a valid backup file.');
+                alert('❌ Invalid file format. Please select a valid backup file.');
                 console.error('Import error:', error);
             }
         };
         reader.readAsText(file);
-    }
-
-    // Utility methods
-    formatDate(dateString) {
-        if (!dateString) return 'Not set';
-        return new Date(dateString).toLocaleDateString('en-IN', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        });
-    }
-
-    getStatusColor(status) {
-        const colors = {
-            'hot': '#ff6b6b',
-            'warm': '#feca57',
-            'cold': '#74b9ff',
-            'qualified': '#00b894',
-            'contacted': '#fdcb6e',
-            'meeting scheduled': '#6c5ce7',
-            'proposal sent': '#a29bfe',
-            'negotiation': '#fd79a8',
-            'closed won': '#00b894',
-            'closed lost': '#636e72'
-        };
-        return colors[status?.toLowerCase()] || '#ddd';
     }
 }
 
@@ -979,12 +1037,18 @@ function addExportImportButtons() {
     importBtn.innerHTML = '<i class="fas fa-upload"></i> Import';
     importBtn.onclick = () => importInput.click();
     
+    const syncURLBtn = document.createElement('button');
+    syncURLBtn.className = 'btn-secondary';
+    syncURLBtn.innerHTML = '<i class="fas fa-link"></i> Manual Sync';
+    syncURLBtn.onclick = () => clientManager.createSyncURL();
+    
     header.appendChild(exportBtn);
     header.appendChild(importInput);
     header.appendChild(importBtn);
+    header.appendChild(syncURLBtn);
 }
 
-// Uncomment the line below to add export/import buttons
+// Uncomment to add extra buttons
 // addExportImportButtons();
 
 // Keyboard shortcuts
@@ -1009,6 +1073,18 @@ document.addEventListener('keydown', (e) => {
         }
     }
     
+    // Ctrl/Cmd + U = Sync Up
+    if ((e.ctrlKey || e.metaKey) && e.key === 'u') {
+        e.preventDefault();
+        clientManager.syncToGoogleSheets();
+    }
+    
+    // Ctrl/Cmd + D = Sync Down
+    if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
+        e.preventDefault();
+        clientManager.syncFromGoogleSheets();
+    }
+    
     // Escape = Close modal
     if (e.key === 'Escape') {
         const modal = document.getElementById('editModal');
@@ -1020,37 +1096,53 @@ document.addEventListener('keydown', (e) => {
 
 // Auto-save form data as user types (draft functionality)
 let autoSaveTimeout;
-const formInputs = document.querySelectorAll('#clientForm input, #clientForm textarea, #clientForm select');
 
-formInputs.forEach(input => {
-    input.addEventListener('input', () => {
-        clearTimeout(autoSaveTimeout);
-        autoSaveTimeout = setTimeout(() => {
-            saveFormDraft();
-        }, 2000); // Save draft after 2 seconds of inactivity
+window.addEventListener('load', () => {
+    const formInputs = document.querySelectorAll('#clientForm input, #clientForm textarea');
+    
+    formInputs.forEach(input => {
+        input.addEventListener('input', () => {
+            clearTimeout(autoSaveTimeout);
+            autoSaveTimeout = setTimeout(() => {
+                saveFormDraft();
+            }, 3000); // Save draft after 3 seconds of inactivity
+        });
     });
+
+    // Load draft when page loads
+    const clientName = document.getElementById('clientName');
+    if (clientName && !clientName.value) {
+        loadFormDraft();
+    }
 });
 
 function saveFormDraft() {
     const formData = {};
+    const formInputs = document.querySelectorAll('#clientForm input, #clientForm textarea');
+    
     formInputs.forEach(input => {
-        if (input.type !== 'file') {
+        if (input.type !== 'file' && input.id) {
             formData[input.id] = input.value;
         }
     });
+    
     localStorage.setItem('formDraft', JSON.stringify(formData));
 }
 
 function loadFormDraft() {
     const draft = localStorage.getItem('formDraft');
     if (draft) {
-        const formData = JSON.parse(draft);
-        Object.keys(formData).forEach(id => {
-            const element = document.getElementById(id);
-            if (element && element.type !== 'file') {
-                element.value = formData[id];
-            }
-        });
+        try {
+            const formData = JSON.parse(draft);
+            Object.keys(formData).forEach(id => {
+                const element = document.getElementById(id);
+                if (element && element.type !== 'file') {
+                    element.value = formData[id];
+                }
+            });
+        } catch (error) {
+            console.error('Error loading form draft:', error);
+        }
     }
 }
 
@@ -1058,27 +1150,33 @@ function clearFormDraft() {
     localStorage.removeItem('formDraft');
 }
 
-// Load draft when page loads
-window.addEventListener('load', () => {
-    // Only load draft if form is empty
-    const clientName = document.getElementById('clientName').value;
-    if (!clientName) {
-        loadFormDraft();
-    }
-});
-
 // Clear draft when form is successfully submitted
-document.getElementById('clientForm').addEventListener('submit', () => {
-    clearFormDraft();
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('clientForm');
+    if (form) {
+        form.addEventListener('submit', () => {
+            clearFormDraft();
+        });
+    }
 });
 
 // Online/Offline status
 window.addEventListener('online', () => {
-    console.log('App is online');
-    // You can show a notification here if needed
+    console.log('📶 App is online');
+    document.body.classList.remove('offline');
 });
 
 window.addEventListener('offline', () => {
-    console.log('App is offline');
-    // You can show a notification here if needed
+    console.log('📵 App is offline');
+    document.body.classList.add('offline');
 });
+
+// Log app initialization
+console.log('🚀 Client Manager Pro initialized successfully!');
+console.log('📋 Available keyboard shortcuts:');
+console.log('  • Ctrl+N: New Client');
+console.log('  • Ctrl+L: Lead Bank');
+console.log('  • Ctrl+S: Save Form');
+console.log('  • Ctrl+U: Sync Up');
+console.log('  • Ctrl+D: Sync Down');
+console.log('  • Escape: Close Modal');
