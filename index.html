@@ -3,200 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Client Manager Pro</title>
+    <title>Client Manager Pro - Real Estate CRM</title>
+    <meta name="description" content="Professional client management system for real estate professionals with Google Sheets sync">
+    <meta name="keywords" content="client manager, real estate, CRM, lead management, Google Sheets">
+    <meta name="author" content="Client Manager Pro">
+    
+    <!-- Stylesheets -->
     <link rel="stylesheet" href="styles.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Favicon -->
     <link rel="icon" type="image/png" href="https://i.postimg.cc/TwKdTjgv/people-1.png">
+    <link rel="shortcut icon" href="https://i.postimg.cc/TwKdTjgv/people-1.png">
     
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#667eea">
+    <meta name="msapplication-TileColor" content="#667eea">
+    <meta name="msapplication-navbutton-color" content="#667eea">
+    
+    <!-- iOS PWA Meta Tags -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Client Manager Pro">
-    <link rel="apple-touch-icon" href="https://i.postimg.cc/XJtVqZkG/people.png">
-    <link rel="manifest" href="manifest.json">
-    
-    <!-- iOS specific meta tags -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-touch-fullscreen" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="https://i.postimg.cc/XJtVqZkG/people.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="https://i.postimg.cc/XJtVqZkG/people.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="https://i.postimg.cc/XJtVqZkG/people.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="https://i.postimg.cc/XJtVqZkG/people.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="https://i.postimg.cc/XJtVqZkG/people.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="https://i.postimg.cc/XJtVqZkG/people.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="https://i.postimg.cc/XJtVqZkG/people.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="https://i.postimg.cc/XJtVqZkG/people.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="https://i.postimg.cc/XJtVqZkG/people.png">
+    <link rel="apple-touch-icon" sizes="57x57" href="https://i.postimg.cc/XJtVqZkG/people.png">
     
-    <!-- Searchable Dropdown Styles -->
-    <style>
-        .searchable-select {
-            position: relative;
-            width: 100%;
-        }
-        
-        .searchable-select input {
-            width: 100%;
-            padding: 12px 40px 12px 15px;
-            border: 2px solid #e2e8f0;
-            border-radius: 10px;
-            font-size: 1rem;
-            background: #f8fafc;
-            cursor: pointer;
-        }
-        
-        .searchable-select input:focus {
-            outline: none;
-            border-color: #667eea;
-            background: white;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-        
-        .searchable-select .dropdown-arrow {
-            position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #a0aec0;
-            pointer-events: none;
-            transition: transform 0.3s ease;
-        }
-        
-        .searchable-select.open .dropdown-arrow {
-            transform: translateY(-50%) rotate(180deg);
-        }
-        
-        .dropdown-options {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: white;
-            border: 2px solid #e2e8f0;
-            border-top: none;
-            border-radius: 0 0 10px 10px;
-            max-height: 200px;
-            overflow-y: auto;
-            z-index: 1000;
-            display: none;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-        
-        .dropdown-options.show {
-            display: block;
-        }
-        
-        .dropdown-option {
-            padding: 12px 15px;
-            cursor: pointer;
-            border-bottom: 1px solid #f1f5f9;
-            transition: background-color 0.2s ease;
-        }
-        
-        .dropdown-option:hover {
-            background-color: #f8fafc;
-        }
-        
-        .dropdown-option.selected {
-            background-color: #667eea;
-            color: white;
-        }
-        
-        .dropdown-option.add-new {
-            background-color: #e6fffa;
-            color: #00a693;
-            font-weight: 600;
-            border-top: 2px solid #00a693;
-        }
-        
-        .dropdown-option.add-new:hover {
-            background-color: #ccfff5;
-        }
-        
-        .pwa-install-banner {
-            display: none;
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            right: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 15px 20px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-            z-index: 1001;
-            animation: slideUp 0.5s ease;
-        }
-        
-        .pwa-install-content {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 15px;
-        }
-        
-        .pwa-install-text {
-            flex: 1;
-        }
-        
-        .pwa-install-text h4 {
-            margin: 0 0 5px 0;
-            font-size: 1rem;
-        }
-        
-        .pwa-install-text p {
-            margin: 0;
-            font-size: 0.85rem;
-            opacity: 0.9;
-        }
-        
-        .pwa-install-buttons {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .pwa-btn {
-            padding: 8px 15px;
-            border: none;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .pwa-btn-install {
-            background: white;
-            color: #667eea;
-        }
-        
-        .pwa-btn-install:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(255, 255, 255, 0.3);
-        }
-        
-        .pwa-btn-dismiss {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-        
-        .pwa-btn-dismiss:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-        
-        @keyframes slideUp {
-            from { transform: translateY(100px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-    </style>
+    <!-- Android PWA Meta Tags -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="mobile-web-app-capable" content="yes">
+    
+    <!-- Microsoft PWA Meta Tags -->
+    <meta name="msapplication-TileImage" content="https://i.postimg.cc/XJtVqZkG/people.png">
+    <meta name="msapplication-config" content="browserconfig.xml">
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="Client Manager Pro - Real Estate CRM">
+    <meta property="og:description" content="Professional client management system with Google Sheets sync">
+    <meta property="og:image" content="https://i.postimg.cc/XJtVqZkG/people.png">
+    <meta property="og:url" content="">
+    <meta property="og:type" content="website">
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Client Manager Pro">
+    <meta name="twitter:description" content="Professional client management system with Google Sheets sync">
+    <meta name="twitter:image" content="https://i.postimg.cc/XJtVqZkG/people.png">
 </head>
 <body>
+    <!-- Main Container -->
     <div class="container">
+        <!-- Header Section -->
         <header>
             <div class="logo-section">
-                <img src="https://i.postimg.cc/XJtVqZkG/people.png" alt="Client Manager Pro" class="logo-img">
+                <img src="https://i.postimg.cc/XJtVqZkG/people.png" alt="Client Manager Pro Logo" class="logo-img">
                 <h1>Client Manager Pro</h1>
             </div>
             <div class="header-buttons">
-                <button id="newClientBtn" class="btn-primary">
+                <button id="newClientBtn" class="btn-primary" title="Add New Client (Ctrl+N)">
                     <i class="fas fa-plus"></i> New Client
                 </button>
-                <button id="viewClientsBtn" class="btn-secondary">
+                <button id="viewClientsBtn" class="btn-secondary" title="View All Clients (Ctrl+L)">
                     <i class="fas fa-database"></i> Lead Bank
+                </button>
+                <button id="syncUpBtn" class="btn-primary" title="Sync to Google Sheets (Ctrl+U)">
+                    <i class="fas fa-cloud-upload-alt"></i> Sync Up
+                </button>
+                <button id="syncDownBtn" class="btn-secondary" title="Sync from Google Sheets (Ctrl+D)">
+                    <i class="fas fa-cloud-download-alt"></i> Sync Down
+                </button>
+                <button id="openSheetBtn" class="btn-secondary" title="Open Google Sheet">
+                    <i class="fas fa-external-link-alt"></i> View Sheet
                 </button>
             </div>
         </header>
@@ -205,22 +90,26 @@
         <div id="formSection" class="section active">
             <div class="card">
                 <h2><i class="fas fa-user-plus"></i> Client Information Form</h2>
-                <form id="clientForm">
+                
+                <form id="clientForm" novalidate>
                     <!-- Site Visit Date -->
                     <div class="form-group">
-                        <label for="siteVisitDate">Site Visit Date *</label>
-                        <input type="date" id="siteVisitDate" required>
+                        <label for="siteVisitDate">Site Visit Date</label>
+                        <input type="date" id="siteVisitDate" required aria-describedby="siteVisitDate-help">
+                        <small id="siteVisitDate-help" class="form-help">Date of client meeting or site visit</small>
                     </div>
 
-                    <!-- Client Basic Info -->
+                    <!-- Client Basic Information -->
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="clientName">Client Name *</label>
-                            <input type="text" id="clientName" required placeholder="Enter full name">
+                            <label for="clientName">Client Name</label>
+                            <input type="text" id="clientName" required placeholder="Enter full name" aria-describedby="clientName-help" autocomplete="name">
+                            <small id="clientName-help" class="form-help">Client's full name</small>
                         </div>
                         <div class="form-group">
-                            <label for="contactNo">Contact Number *</label>
-                            <input type="tel" id="contactNo" required placeholder="Enter phone number">
+                            <label for="contactNo">Contact Number</label>
+                            <input type="tel" id="contactNo" required placeholder="Enter phone number" aria-describedby="contactNo-help" autocomplete="tel">
+                            <small id="contactNo-help" class="form-help">Primary contact number</small>
                         </div>
                     </div>
 
@@ -229,35 +118,37 @@
                         <div class="form-group">
                             <label for="configuration">Configuration</label>
                             <div class="searchable-select" data-field="configuration">
-                                <input type="text" id="configuration" placeholder="Select or type configuration" autocomplete="off">
-                                <i class="fas fa-chevron-down dropdown-arrow"></i>
-                                <div class="dropdown-options">
-                                    <div class="dropdown-option" data-value="1 BHK">1 BHK</div>
-                                    <div class="dropdown-option" data-value="2 BHK">2 BHK</div>
-                                    <div class="dropdown-option" data-value="3 BHK">3 BHK</div>
-                                    <div class="dropdown-option" data-value="4 BHK">4 BHK</div>
-                                    <div class="dropdown-option" data-value="Villa">Villa</div>
-                                    <div class="dropdown-option" data-value="Duplex">Duplex</div>
-                                    <div class="dropdown-option" data-value="Penthouse">Penthouse</div>
-                                    <div class="dropdown-option" data-value="Studio">Studio</div>
+                                <input type="text" id="configuration" placeholder="Select or type configuration" autocomplete="off" aria-describedby="configuration-help">
+                                <i class="fas fa-chevron-down dropdown-arrow" aria-hidden="true"></i>
+                                <div class="dropdown-options" role="listbox" aria-label="Configuration options">
+                                    <div class="dropdown-option" data-value="1 BHK" role="option">1 BHK</div>
+                                    <div class="dropdown-option" data-value="2 BHK" role="option">2 BHK</div>
+                                    <div class="dropdown-option" data-value="3 BHK" role="option">3 BHK</div>
+                                    <div class="dropdown-option" data-value="4 BHK" role="option">4 BHK</div>
+                                    <div class="dropdown-option" data-value="Villa" role="option">Villa</div>
+                                    <div class="dropdown-option" data-value="Duplex" role="option">Duplex</div>
+                                    <div class="dropdown-option" data-value="Penthouse" role="option">Penthouse</div>
+                                    <div class="dropdown-option" data-value="Studio" role="option">Studio</div>
                                 </div>
                             </div>
+                            <small id="configuration-help" class="form-help">Property configuration type</small>
                         </div>
                         <div class="form-group">
-                            <label for="budget">Budget</label>
+                            <label for="budget">Budget Range</label>
                             <div class="searchable-select" data-field="budget">
-                                <input type="text" id="budget" placeholder="Select or type budget range" autocomplete="off">
-                                <i class="fas fa-chevron-down dropdown-arrow"></i>
-                                <div class="dropdown-options">
-                                    <div class="dropdown-option" data-value="Under 25 Lakh">Under 25 Lakh</div>
-                                    <div class="dropdown-option" data-value="25-50 Lakh">25-50 Lakh</div>
-                                    <div class="dropdown-option" data-value="50-75 Lakh">50-75 Lakh</div>
-                                    <div class="dropdown-option" data-value="75 Lakh - 1 Crore">75 Lakh - 1 Crore</div>
-                                    <div class="dropdown-option" data-value="1-2 Crore">1-2 Crore</div>
-                                    <div class="dropdown-option" data-value="2-5 Crore">2-5 Crore</div>
-                                    <div class="dropdown-option" data-value="Above 5 Crore">Above 5 Crore</div>
+                                <input type="text" id="budget" placeholder="Select or type budget range" autocomplete="off" aria-describedby="budget-help">
+                                <i class="fas fa-chevron-down dropdown-arrow" aria-hidden="true"></i>
+                                <div class="dropdown-options" role="listbox" aria-label="Budget options">
+                                    <div class="dropdown-option" data-value="Under 25 Lakh" role="option">Under 25 Lakh</div>
+                                    <div class="dropdown-option" data-value="25-50 Lakh" role="option">25-50 Lakh</div>
+                                    <div class="dropdown-option" data-value="50-75 Lakh" role="option">50-75 Lakh</div>
+                                    <div class="dropdown-option" data-value="75 Lakh - 1 Crore" role="option">75 Lakh - 1 Crore</div>
+                                    <div class="dropdown-option" data-value="1-2 Crore" role="option">1-2 Crore</div>
+                                    <div class="dropdown-option" data-value="2-5 Crore" role="option">2-5 Crore</div>
+                                    <div class="dropdown-option" data-value="Above 5 Crore" role="option">Above 5 Crore</div>
                                 </div>
                             </div>
+                            <small id="budget-help" class="form-help">Client's budget range</small>
                         </div>
                     </div>
 
@@ -266,42 +157,45 @@
                         <div class="form-group">
                             <label for="leadStatus">Lead Status</label>
                             <div class="searchable-select" data-field="leadStatus">
-                                <input type="text" id="leadStatus" placeholder="Select or type lead status" autocomplete="off">
-                                <i class="fas fa-chevron-down dropdown-arrow"></i>
-                                <div class="dropdown-options">
-                                    <div class="dropdown-option" data-value="Hot">Hot</div>
-                                    <div class="dropdown-option" data-value="Warm">Warm</div>
-                                    <div class="dropdown-option" data-value="Cold">Cold</div>
-                                    <div class="dropdown-option" data-value="Qualified">Qualified</div>
-                                    <div class="dropdown-option" data-value="Contacted">Contacted</div>
-                                    <div class="dropdown-option" data-value="Meeting Scheduled">Meeting Scheduled</div>
-                                    <div class="dropdown-option" data-value="Proposal Sent">Proposal Sent</div>
-                                    <div class="dropdown-option" data-value="Negotiation">Negotiation</div>
-                                    <div class="dropdown-option" data-value="Closed Won">Closed Won</div>
-                                    <div class="dropdown-option" data-value="Closed Lost">Closed Lost</div>
+                                <input type="text" id="leadStatus" placeholder="Select or type lead status" autocomplete="off" aria-describedby="leadStatus-help">
+                                <i class="fas fa-chevron-down dropdown-arrow" aria-hidden="true"></i>
+                                <div class="dropdown-options" role="listbox" aria-label="Lead status options">
+                                    <div class="dropdown-option" data-value="Hot" role="option">🔥 Hot</div>
+                                    <div class="dropdown-option" data-value="Warm" role="option">🌡️ Warm</div>
+                                    <div class="dropdown-option" data-value="Cold" role="option">❄️ Cold</div>
+                                    <div class="dropdown-option" data-value="Qualified" role="option">✅ Qualified</div>
+                                    <div class="dropdown-option" data-value="Contacted" role="option">📞 Contacted</div>
+                                    <div class="dropdown-option" data-value="Meeting Scheduled" role="option">📅 Meeting Scheduled</div>
+                                    <div class="dropdown-option" data-value="Proposal Sent" role="option">📄 Proposal Sent</div>
+                                    <div class="dropdown-option" data-value="Negotiation" role="option">🤝 Negotiation</div>
+                                    <div class="dropdown-option" data-value="Closed Won" role="option">🎉 Closed Won</div>
+                                    <div class="dropdown-option" data-value="Closed Lost" role="option">❌ Closed Lost</div>
                                 </div>
                             </div>
+                            <small id="leadStatus-help" class="form-help">Current lead status</small>
                         </div>
                         <div class="form-group">
-                            <label for="prospect">Prospect</label>
+                            <label for="prospect">Prospect Level</label>
                             <div class="searchable-select" data-field="prospect">
-                                <input type="text" id="prospect" placeholder="Select or type prospect level" autocomplete="off">
-                                <i class="fas fa-chevron-down dropdown-arrow"></i>
-                                <div class="dropdown-options">
-                                    <div class="dropdown-option" data-value="High">High</div>
-                                    <div class="dropdown-option" data-value="Medium">Medium</div>
-                                    <div class="dropdown-option" data-value="Low">Low</div>
-                                    <div class="dropdown-option" data-value="Very High">Very High</div>
-                                    <div class="dropdown-option" data-value="Confirmed">Confirmed</div>
+                                <input type="text" id="prospect" placeholder="Select or type prospect level" autocomplete="off" aria-describedby="prospect-help">
+                                <i class="fas fa-chevron-down dropdown-arrow" aria-hidden="true"></i>
+                                <div class="dropdown-options" role="listbox" aria-label="Prospect level options">
+                                    <div class="dropdown-option" data-value="Very High" role="option">⭐⭐⭐⭐⭐ Very High</div>
+                                    <div class="dropdown-option" data-value="High" role="option">⭐⭐⭐⭐ High</div>
+                                    <div class="dropdown-option" data-value="Medium" role="option">⭐⭐⭐ Medium</div>
+                                    <div class="dropdown-option" data-value="Low" role="option">⭐⭐ Low</div>
+                                    <div class="dropdown-option" data-value="Confirmed" role="option">🎯 Confirmed</div>
                                 </div>
                             </div>
+                            <small id="prospect-help" class="form-help">Likelihood of conversion</small>
                         </div>
                     </div>
 
                     <!-- Follow Up Date -->
                     <div class="form-group">
                         <label for="followUpDate">Follow Up Date</label>
-                        <input type="date" id="followUpDate">
+                        <input type="date" id="followUpDate" aria-describedby="followUpDate-help">
+                        <small id="followUpDate-help" class="form-help">Next follow-up date</small>
                     </div>
 
                     <!-- Managers -->
@@ -309,84 +203,92 @@
                         <div class="form-group">
                             <label for="sourcingManager">Sourcing Manager</label>
                             <div class="searchable-select" data-field="sourcingManager">
-                                <input type="text" id="sourcingManager" placeholder="Select or type sourcing manager" autocomplete="off">
-                                <i class="fas fa-chevron-down dropdown-arrow"></i>
-                                <div class="dropdown-options">
-                                    <div class="dropdown-option" data-value="Rahul Sharma">Rahul Sharma</div>
-                                    <div class="dropdown-option" data-value="Priya Singh">Priya Singh</div>
-                                    <div class="dropdown-option" data-value="Amit Kumar">Amit Kumar</div>
-                                    <div class="dropdown-option" data-value="Sneha Patel">Sneha Patel</div>
-                                    <div class="dropdown-option" data-value="Vikash Gupta">Vikash Gupta</div>
+                                <input type="text" id="sourcingManager" placeholder="Select or type sourcing manager" autocomplete="off" aria-describedby="sourcingManager-help">
+                                <i class="fas fa-chevron-down dropdown-arrow" aria-hidden="true"></i>
+                                <div class="dropdown-options" role="listbox" aria-label="Sourcing manager options">
+                                    <div class="dropdown-option" data-value="Rahul Sharma" role="option">👨‍💼 Rahul Sharma</div>
+                                    <div class="dropdown-option" data-value="Priya Singh" role="option">👩‍💼 Priya Singh</div>
+                                    <div class="dropdown-option" data-value="Amit Kumar" role="option">👨‍💼 Amit Kumar</div>
+                                    <div class="dropdown-option" data-value="Sneha Patel" role="option">👩‍💼 Sneha Patel</div>
+                                    <div class="dropdown-option" data-value="Vikash Gupta" role="option">👨‍💼 Vikash Gupta</div>
                                 </div>
                             </div>
+                            <small id="sourcingManager-help" class="form-help">Lead sourcing manager</small>
                         </div>
                         <div class="form-group">
                             <label for="closingManager">Closing Manager</label>
                             <div class="searchable-select" data-field="closingManager">
-                                <input type="text" id="closingManager" placeholder="Select or type closing manager" autocomplete="off">
-                                <i class="fas fa-chevron-down dropdown-arrow"></i>
-                                <div class="dropdown-options">
-                                    <div class="dropdown-option" data-value="Rajesh Verma">Rajesh Verma</div>
-                                    <div class="dropdown-option" data-value="Sunita Jain">Sunita Jain</div>
-                                    <div class="dropdown-option" data-value="Manish Agarwal">Manish Agarwal</div>
-                                    <div class="dropdown-option" data-value="Kavita Mehta">Kavita Mehta</div>
-                                    <div class="dropdown-option" data-value="Suresh Yadav">Suresh Yadav</div>
+                                <input type="text" id="closingManager" placeholder="Select or type closing manager" autocomplete="off" aria-describedby="closingManager-help">
+                                <i class="fas fa-chevron-down dropdown-arrow" aria-hidden="true"></i>
+                                <div class="dropdown-options" role="listbox" aria-label="Closing manager options">
+                                    <div class="dropdown-option" data-value="Rajesh Verma" role="option">🤝 Rajesh Verma</div>
+                                    <div class="dropdown-option" data-value="Sunita Jain" role="option">🤝 Sunita Jain</div>
+                                    <div class="dropdown-option" data-value="Manish Agarwal" role="option">🤝 Manish Agarwal</div>
+                                    <div class="dropdown-option" data-value="Kavita Mehta" role="option">🤝 Kavita Mehta</div>
+                                    <div class="dropdown-option" data-value="Suresh Yadav" role="option">🤝 Suresh Yadav</div>
                                 </div>
                             </div>
+                            <small id="closingManager-help" class="form-help">Deal closing manager</small>
                         </div>
                     </div>
 
                     <!-- CP Information -->
                     <div class="form-group">
-                        <label for="cpFirmName">CP Firm Name</label>
+                        <label for="cpFirmName">Channel Partner Firm Name</label>
                         <div class="searchable-select" data-field="cpFirmName">
-                            <input type="text" id="cpFirmName" placeholder="Select or type CP firm name" autocomplete="off">
-                            <i class="fas fa-chevron-down dropdown-arrow"></i>
-                            <div class="dropdown-options">
-                                <div class="dropdown-option" data-value="PropTech Solutions">PropTech Solutions</div>
-                                <div class="dropdown-option" data-value="Real Estate Partners">Real Estate Partners</div>
-                                <div class="dropdown-option" data-value="Property Consultants India">Property Consultants India</div>
-                                <div class="dropdown-option" data-value="Elite Realty">Elite Realty</div>
-                                <div class="dropdown-option" data-value="Prime Properties">Prime Properties</div>
+                            <input type="text" id="cpFirmName" placeholder="Select or type CP firm name" autocomplete="off" aria-describedby="cpFirmName-help" autocomplete="organization">
+                            <i class="fas fa-chevron-down dropdown-arrow" aria-hidden="true"></i>
+                            <div class="dropdown-options" role="listbox" aria-label="CP firm options">
+                                <div class="dropdown-option" data-value="PropTech Solutions" role="option">🏢 PropTech Solutions</div>
+                                <div class="dropdown-option" data-value="Real Estate Partners" role="option">🏢 Real Estate Partners</div>
+                                <div class="dropdown-option" data-value="Property Consultants India" role="option">🏢 Property Consultants India</div>
+                                <div class="dropdown-option" data-value="Elite Realty" role="option">🏢 Elite Realty</div>
+                                <div class="dropdown-option" data-value="Prime Properties" role="option">🏢 Prime Properties</div>
                             </div>
                         </div>
+                        <small id="cpFirmName-help" class="form-help">Channel partner company name</small>
                     </div>
 
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="cpName">CP Name</label>
-                            <input type="text" id="cpName" placeholder="Enter CP representative name">
+                            <label for="cpName">CP Representative Name</label>
+                            <input type="text" id="cpName" placeholder="Enter CP representative name" aria-describedby="cpName-help" autocomplete="name">
+                            <small id="cpName-help" class="form-help">Channel partner contact person</small>
                         </div>
                         <div class="form-group">
                             <label for="cpContactNo">CP Contact Number</label>
-                            <input type="tel" id="cpContactNo" placeholder="Enter CP contact number">
+                            <input type="tel" id="cpContactNo" placeholder="Enter CP contact number" aria-describedby="cpContactNo-help" autocomplete="tel">
+                            <small id="cpContactNo-help" class="form-help">Channel partner phone number</small>
                         </div>
                     </div>
 
-                    <!-- Remark -->
+                    <!-- Remarks -->
                     <div class="form-group">
-                        <label for="remark">Remark</label>
-                        <textarea id="remark" rows="4" placeholder="Meeting notes, special requirements, follow-up actions..."></textarea>
+                        <label for="remark">Initial Remarks</label>
+                        <textarea id="remark" rows="4" placeholder="Meeting notes, special requirements, follow-up actions..." aria-describedby="remark-help"></textarea>
+                        <small id="remark-help" class="form-help">Initial meeting notes and observations</small>
                     </div>
 
                     <!-- Client Photo -->
                     <div class="form-group">
                         <label for="clientPhoto">Client Photo</label>
                         <div class="photo-upload">
-                            <input type="file" id="clientPhoto" accept="image/*" capture="user">
+                            <input type="file" id="clientPhoto" accept="image/*" capture="user" aria-describedby="clientPhoto-help">
                             <label for="clientPhoto" class="photo-label">
-                                <i class="fas fa-camera"></i> Take Photo or Upload from Gallery
+                                <i class="fas fa-camera" aria-hidden="true"></i> Take Photo or Upload from Gallery
                             </label>
-                            <div id="photoPreview"></div>
+                            <div id="photoPreview" aria-live="polite"></div>
                         </div>
+                        <small id="clientPhoto-help" class="form-help">Optional client photo (max 5MB)</small>
                     </div>
 
+                    <!-- Form Actions -->
                     <div class="form-actions">
                         <button type="submit" class="btn-primary btn-large">
-                            <i class="fas fa-save"></i> Save Client
+                            <i class="fas fa-save" aria-hidden="true"></i> Save Client
                         </button>
                         <button type="reset" class="btn-secondary">
-                            <i class="fas fa-undo"></i> Reset Form
+                            <i class="fas fa-undo" aria-hidden="true"></i> Reset Form
                         </button>
                     </div>
                 </form>
@@ -399,33 +301,35 @@
                 <div class="section-header">
                     <h2><i class="fas fa-database"></i> Lead Bank</h2>
                     <div class="search-box">
-                        <input type="text" id="searchInput" placeholder="Search clients...">
-                        <i class="fas fa-search"></i>
+                        <input type="text" id="searchInput" placeholder="Search clients..." aria-label="Search clients" autocomplete="off">
+                        <i class="fas fa-search" aria-hidden="true"></i>
                     </div>
                 </div>
                 
+                <!-- Statistics Bar -->
                 <div class="stats-bar">
                     <div class="stat">
-                        <span class="stat-number" id="totalClients">0</span>
+                        <span class="stat-number" id="totalClients" aria-label="Total clients">0</span>
                         <span class="stat-label">Total Clients</span>
                     </div>
                     <div class="stat">
-                        <span class="stat-number" id="todayClients">0</span>
+                        <span class="stat-number" id="todayClients" aria-label="Clients added today">0</span>
                         <span class="stat-label">Added Today</span>
                     </div>
                     <div class="stat">
-                        <span class="stat-number" id="hotLeads">0</span>
+                        <span class="stat-number" id="hotLeads" aria-label="Hot leads">0</span>
                         <span class="stat-label">Hot Leads</span>
                     </div>
                     <div class="stat">
-                        <span class="stat-number" id="followUpsToday">0</span>
+                        <span class="stat-number" id="followUpsToday" aria-label="Follow-ups today">0</span>
                         <span class="stat-label">Follow-ups Today</span>
                     </div>
                 </div>
 
-                <div id="clientsList" class="clients-list">
+                <!-- Clients List -->
+                <div id="clientsList" class="clients-list" role="main" aria-live="polite">
                     <div id="noClients" class="no-data">
-                        <i class="fas fa-users"></i>
+                        <i class="fas fa-users" aria-hidden="true"></i>
                         <p>No clients added yet. Click "New Client" to get started!</p>
                     </div>
                 </div>
@@ -433,42 +337,143 @@
         </div>
 
         <!-- Edit Modal -->
-        <div id="editModal" class="modal">
+        <div id="editModal" class="modal" role="dialog" aria-labelledby="editModalTitle" aria-hidden="true">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h3><i class="fas fa-edit"></i> Edit Client</h3>
-                    <button class="close-btn" id="closeModal">&times;</button>
+                    <h3 id="editModalTitle"><i class="fas fa-edit"></i> Edit Client Remarks</h3>
+                    <button class="close-btn" id="closeModal" aria-label="Close modal">&times;</button>
                 </div>
                 <div class="modal-body">
                     <div class="form-group">
                         <label for="editRemarks">Additional Remarks/Updates</label>
-                        <textarea id="editRemarks" rows="4" placeholder="Add follow-up notes, meeting outcomes, status updates..."></textarea>
+                        <textarea id="editRemarks" rows="4" placeholder="Add follow-up notes, meeting outcomes, status updates..." aria-describedby="editRemarks-help"></textarea>
+                        <small id="editRemarks-help" class="form-help">Add new remarks or update existing ones</small>
                     </div>
                     <div class="modal-actions">
                         <button id="saveRemarks" class="btn-primary">
-                            <i class="fas fa-save"></i> Save Changes
+                            <i class="fas fa-save" aria-hidden="true"></i> Save Changes
                         </button>
-                        <button id="cancelEdit" class="btn-secondary">Cancel</button>
+                        <button id="cancelEdit" class="btn-secondary">
+                            <i class="fas fa-times" aria-hidden="true"></i> Cancel
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- PWA Install Banner -->
-        <div id="pwaInstallBanner" class="pwa-install-banner">
+        <div id="pwaInstallBanner" class="pwa-install-banner" role="banner" aria-live="polite">
             <div class="pwa-install-content">
                 <div class="pwa-install-text">
-                    <h4>Install Client Manager Pro</h4>
+                    <h4><i class="fas fa-mobile-alt" aria-hidden="true"></i> Install Client Manager Pro</h4>
                     <p>Get quick access and work offline</p>
                 </div>
                 <div class="pwa-install-buttons">
-                    <button id="pwaInstallBtn" class="pwa-btn pwa-btn-install">Install</button>
-                    <button id="pwaDismissBtn" class="pwa-btn pwa-btn-dismiss">Later</button>
+                    <button id="pwaInstallBtn" class="pwa-btn pwa-btn-install">
+                        <i class="fas fa-download" aria-hidden="true"></i> Install
+                    </button>
+                    <button id="pwaDismissBtn" class="pwa-btn pwa-btn-dismiss">
+                        <i class="fas fa-times" aria-hidden="true"></i> Later
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Loading Indicator (Hidden by default) -->
+    <div id="loadingIndicator" class="loading-indicator" style="display: none;" role="status" aria-live="polite">
+        <div class="spinner"></div>
+        <span>Processing...</span>
+    </div>
+
+    <!-- Toast Notifications Container -->
+    <div id="toastContainer" class="toast-container" role="region" aria-live="polite" aria-label="Notifications"></div>
+
+    <!-- Service Worker Registration -->
+    <script>
+        // Register service worker for PWA functionality
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(registration => {
+                        console.log('✅ Service Worker registered successfully:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('❌ Service Worker registration failed:', error);
+                    });
+            });
+        }
+
+        // Handle app updates
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                window.location.reload();
+            });
+        }
+
+        // Add viewport height fix for mobile devices
+        function setVH() {
+            let vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        }
+        
+        setVH();
+        window.addEventListener('resize', setVH);
+        window.addEventListener('orientationchange', setVH);
+
+        // Performance monitoring
+        window.addEventListener('load', () => {
+            if ('performance' in window) {
+                const loadTime = performance.timing.loadEventEnd - performance.timing.navigationStart;
+                console.log(`📊 Page load time: ${loadTime}ms`);
+            }
+        });
+
+        // Error handling
+        window.addEventListener('error', (event) => {
+            console.error('❌ Global error:', event.error);
+            // You can add error reporting here
+        });
+
+        window.addEventListener('unhandledrejection', (event) => {
+            console.error('❌ Unhandled promise rejection:', event.reason);
+            // You can add error reporting here
+        });
+    </script>
+
+    <!-- Main Application Script -->
     <script src="script.js"></script>
+
+    <!-- Analytics (Optional - Add your analytics code here) -->
+    <!-- 
+    <script>
+        // Add your analytics tracking code here
+        // Example: Google Analytics, Mixpanel, etc.
+    </script>
+    -->
+
+    <!-- Schema.org Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Client Manager Pro",
+        "description": "Professional client management system for real estate professionals with Google Sheets synchronization",
+        "url": "",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "Any",
+        "permissions": "camera, storage",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        },
+        "author": {
+            "@type": "Organization",
+            "name": "Client Manager Pro"
+        },
+        "screenshot": "https://i.postimg.cc/XJtVqZkG/people.png"
+    }
+    </script>
 </body>
 </html>
