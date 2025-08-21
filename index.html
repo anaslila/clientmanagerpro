@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Client Manager Pro</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-users"></i> Client Manager Pro</h1>
+            <div class="header-buttons">
+                <button id="newClientBtn" class="btn-primary">
+                    <i class="fas fa-plus"></i> New Client
+                </button>
+                <button id="viewClientsBtn" class="btn-secondary">
+                    <i class="fas fa-database"></i> Lead Bank
+                </button>
+            </div>
+        </header>
+
+        <!-- Client Form Section -->
+        <div id="formSection" class="section active">
+            <div class="card">
+                <h2><i class="fas fa-user-plus"></i> Client Information Form</h2>
+                <form id="clientForm">
+                    <div class="form-group">
+                        <label for="clientName">Full Name *</label>
+                        <input type="text" id="clientName" required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="clientPhone">Phone Number *</label>
+                            <input type="tel" id="clientPhone" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="clientEmail">Email Address</label>
+                            <input type="email" id="clientEmail">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="clientCompany">Company/Organization</label>
+                        <input type="text" id="clientCompany">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="clientService">Service Interest</label>
+                            <select id="clientService">
+                                <option value="">Select Service</option>
+                                <option value="consultation">Consultation</option>
+                                <option value="development">Development</option>
+                                <option value="maintenance">Maintenance</option>
+                                <option value="support">Support</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="clientBudget">Budget Range</label>
+                            <select id="clientBudget">
+                                <option value="">Select Budget</option>
+                                <option value="under-5k">Under $5,000</option>
+                                <option value="5k-10k">$5,000 - $10,000</option>
+                                <option value="10k-25k">$10,000 - $25,000</option>
+                                <option value="25k-50k">$25,000 - $50,000</option>
+                                <option value="over-50k">Over $50,000</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="clientNotes">Notes/Requirements</label>
+                        <textarea id="clientNotes" rows="4" placeholder="Meeting notes, special requirements, follow-up actions..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="clientPhoto">Client Photo</label>
+                        <div class="photo-upload">
+                            <input type="file" id="clientPhoto" accept="image/*" capture="user">
+                            <label for="clientPhoto" class="photo-label">
+                                <i class="fas fa-camera"></i> Take Photo or Upload from Gallery
+                            </label>
+                            <div id="photoPreview"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary btn-large">
+                            <i class="fas fa-save"></i> Save Client
+                        </button>
+                        <button type="reset" class="btn-secondary">
+                            <i class="fas fa-undo"></i> Reset Form
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Lead Bank Section -->
+        <div id="leadBankSection" class="section">
+            <div class="card">
+                <div class="section-header">
+                    <h2><i class="fas fa-database"></i> Lead Bank</h2>
+                    <div class="search-box">
+                        <input type="text" id="searchInput" placeholder="Search clients...">
+                        <i class="fas fa-search"></i>
+                    </div>
+                </div>
+                
+                <div class="stats-bar">
+                    <div class="stat">
+                        <span class="stat-number" id="totalClients">0</span>
+                        <span class="stat-label">Total Clients</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number" id="todayClients">0</span>
+                        <span class="stat-label">Added Today</span>
+                    </div>
+                </div>
+
+                <div id="clientsList" class="clients-list">
+                    <div id="noClients" class="no-data">
+                        <i class="fas fa-users"></i>
+                        <p>No clients added yet. Click "New Client" to get started!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Modal -->
+        <div id="editModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3><i class="fas fa-edit"></i> Edit Client</h3>
+                    <button class="close-btn" id="closeModal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="editRemarks">Remarks/Updates</label>
+                        <textarea id="editRemarks" rows="4" placeholder="Add follow-up notes, meeting outcomes, status updates..."></textarea>
+                    </div>
+                    <div class="modal-actions">
+                        <button id="saveRemarks" class="btn-primary">
+                            <i class="fas fa-save"></i> Save Changes
+                        </button>
+                        <button id="cancelEdit" class="btn-secondary">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
